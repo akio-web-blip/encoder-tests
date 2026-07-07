@@ -72,7 +72,7 @@ def run_encoder_test():
         print(f"Initial reading (ND2): {offset2} deg\n")
 
         print(f"Step 0/{NUM_MOVES}  Commanded:    0.0 deg   Measured1: 0.0   Measured2: 0.0")
-        write_result(writer, csv_file, plot_theta, plot_diff, 0, 0.0, 0.0, 0.0)
+        write_result(writer, csv_file, plot_theta, plot_diff, 0, 0.0, offset1, offset2, 0.0, 0.0)
 
         last_raw1 = offset1
         last_raw2 = offset2
@@ -85,21 +85,35 @@ def run_encoder_test():
             move_dpe(dpe, STEPS_PER_MOVE)
             time.sleep(MOVE_SETTLE_TIME)
 
+            raw_measured1 = read_nd287_angle(nd1)
+            raw_measured2 = read_nd287_angle(nd2)
+
             measured_angle1, last_raw1, unwrapped1 = unwrap_angle(
-                read_nd287_angle(nd1),
+                raw_measured1,
                 last_raw1,
                 unwrapped1,
                 DIRECTION_1,
             )
             measured_angle2, last_raw2, unwrapped2 = unwrap_angle(
-                read_nd287_angle(nd2),
+                raw_measured2,
                 last_raw2,
                 unwrapped2,
                 DIRECTION_2,
             )
 
             print(f"Step {i + 1}/{NUM_MOVES}  Commanded: {commanded_theta:6.1f} deg   Measured1: {measured_angle1}   Measured2: {measured_angle2}")
-            write_result(writer, csv_file, plot_theta, plot_diff, i + 1, commanded_theta, measured_angle1, measured_angle2)
+            write_result(
+                writer,
+                csv_file,
+                plot_theta,
+                plot_diff,
+                i + 1,
+                commanded_theta,
+                raw_measured1,
+                raw_measured2,
+                measured_angle1,
+                measured_angle2,
+            )
 
         print(f"\nDone. Results saved to {csv_path}")
         should_plot = True

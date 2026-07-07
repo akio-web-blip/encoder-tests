@@ -9,9 +9,16 @@ CSV_HEADER = [
     "timestamp",
     "step",
     "commanded_theta_deg",
+    "raw_encoder_1_deg",
+    "raw_encoder_2_deg",
     "measured_angle_1_deg",
     "measured_angle_2_deg",
     "diff_1_minus_2_deg",
+    "diff_2_minus_1_deg",
+    "unoffset_encoder_1_deg",
+    "unoffset_encoder_2_deg",
+    "raw_diff_1_minus_2_deg",
+    "raw_diff_2_minus_1_deg",
 ]
 
 
@@ -46,14 +53,31 @@ def open_results_csv(csv_path):
     return csv_file, writer
 
 
-def write_result(writer, csv_file, plot_theta, plot_diff, step, commanded, measured1, measured2):
-    diff = (measured1 - measured2) if (measured1 is not None and measured2 is not None) else ""
-    writer.writerow([timestamp(), step, commanded, measured1, measured2, diff])
+def write_result(writer, csv_file, plot_theta, plot_diff, step, commanded, raw1, raw2, measured1, measured2):
+    diff_1_minus_2 = (measured1 - measured2) if (measured1 is not None and measured2 is not None) else ""
+    diff_2_minus_1 = (measured2 - measured1) if (measured1 is not None and measured2 is not None) else ""
+    raw_diff_1_minus_2 = (raw1 - raw2) if (raw1 is not None and raw2 is not None) else ""
+    raw_diff_2_minus_1 = (raw2 - raw1) if (raw1 is not None and raw2 is not None) else ""
+    writer.writerow([
+        timestamp(),
+        step,
+        commanded,
+        raw1,
+        raw2,
+        measured1,
+        measured2,
+        diff_1_minus_2,
+        diff_2_minus_1,
+        raw1,
+        raw2,
+        raw_diff_1_minus_2,
+        raw_diff_2_minus_1,
+    ])
     csv_file.flush()
 
-    if diff != "":
+    if diff_1_minus_2 != "":
         plot_theta.append(measured1)
-        plot_diff.append(diff)
+        plot_diff.append(diff_1_minus_2)
 
 
 def save_difference_plot(plot_theta, plot_diff, plot_path):
