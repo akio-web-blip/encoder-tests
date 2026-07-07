@@ -21,5 +21,5 @@ MAX_TINY_MOVEMENTS = 300000
 REV_COUNTER_SETTLE_TIME = 0.01
 REV_COUNTER_READ_INTERVAL = 10000
 OUTPUT_DIR = Path("output")
-OUTPUT_CSV = OUTPUT_DIR / "encoder_data.csv"
-PLOT_FILENAME = OUTPUT_DIR / "encoder_diff_plot.png"
+OUTPUT_CSV_PREFIX = "encoder_data"
+PLOT_FILENAME_PREFIX = "encoder_diff_plot"

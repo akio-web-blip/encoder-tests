@@ -9,6 +9,7 @@ from hardware import (
     setup_dpe,
 )
 from output_files import (
+    make_run_output_paths,
     open_results_csv,
     prepare_output_folder,
     save_difference_plot,
@@ -20,7 +21,6 @@ from variables import (
     DIRECTION_2,
     MOVE_SETTLE_TIME,
     NUM_MOVES,
-    OUTPUT_CSV,
     STEPS_PER_MOVE,
 )
 
@@ -53,14 +53,18 @@ def run_encoder_test():
     plot_theta = []
     plot_diff = []
     interrupted = False
+    csv_path = None
+    plot_path = None
+    should_plot = False
 
     try:
         prepare_output_folder()
+        csv_path, plot_path = make_run_output_paths()
 
         dpe, nd1, nd2 = open_serial_connections()
         setup_dpe(dpe)
 
-        csv_file, writer = open_results_csv()
+        csv_file, writer = open_results_csv(csv_path)
 
         offset1 = read_nd287_angle(nd1)
         offset2 = read_nd287_angle(nd2)
@@ -97,15 +101,15 @@ def run_encoder_test():
             print(f"Step {i + 1}/{NUM_MOVES}  Commanded: {commanded_theta:6.1f} deg   Measured1: {measured_angle1}   Measured2: {measured_angle2}")
             write_result(writer, csv_file, plot_theta, plot_diff, i + 1, commanded_theta, measured_angle1, measured_angle2)
 
-        print(f"\nDone. Results saved to {OUTPUT_CSV}")
-        save_difference_plot(plot_theta, plot_diff)
+        print(f"\nDone. Results saved to {csv_path}")
+        should_plot = True
     except KeyboardInterrupt:
         interrupted = True
         print("\nKeyboard interrupt received. Stopping encoder test gracefully.")
         if csv_file is not None:
-            print(f"Partial results saved to {OUTPUT_CSV}")
+            print(f"Partial results saved to {csv_path}")
         if plot_theta and plot_diff:
-            save_difference_plot(plot_theta, plot_diff)
+            should_plot = True
     finally:
         if csv_file is not None:
             csv_file.close()
@@ -117,3 +121,6 @@ def run_encoder_test():
             print("Run status: interrupted")
         print(f"Run ended: {run_end.isoformat(timespec='seconds')}")
         print(f"Elapsed time: {elapsed_seconds:.2f} seconds")
+
+        if should_plot and plot_theta and plot_diff:
+            save_difference_plot(plot_theta, plot_diff, plot_path)
