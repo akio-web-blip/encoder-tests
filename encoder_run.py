@@ -50,6 +50,9 @@ def run_encoder_test():
     nd1 = None
     nd2 = None
     csv_file = None
+    plot_theta = []
+    plot_diff = []
+    interrupted = False
 
     try:
         prepare_output_folder()
@@ -58,8 +61,6 @@ def run_encoder_test():
         setup_dpe(dpe)
 
         csv_file, writer = open_results_csv()
-        plot_theta = []
-        plot_diff = []
 
         offset1 = read_nd287_angle(nd1)
         offset2 = read_nd287_angle(nd2)
@@ -98,6 +99,13 @@ def run_encoder_test():
 
         print(f"\nDone. Results saved to {OUTPUT_CSV}")
         save_difference_plot(plot_theta, plot_diff)
+    except KeyboardInterrupt:
+        interrupted = True
+        print("\nKeyboard interrupt received. Stopping encoder test gracefully.")
+        if csv_file is not None:
+            print(f"Partial results saved to {OUTPUT_CSV}")
+        if plot_theta and plot_diff:
+            save_difference_plot(plot_theta, plot_diff)
     finally:
         if csv_file is not None:
             csv_file.close()
@@ -105,5 +113,7 @@ def run_encoder_test():
 
         run_end = datetime.now()
         elapsed_seconds = time.perf_counter() - timer_start
+        if interrupted:
+            print("Run status: interrupted")
         print(f"Run ended: {run_end.isoformat(timespec='seconds')}")
         print(f"Elapsed time: {elapsed_seconds:.2f} seconds")
