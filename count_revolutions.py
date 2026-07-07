@@ -11,7 +11,7 @@ from hardware import (
 from variables import (
     EQUAL_ANGLE_TOLERANCE_DEG,
     MAX_TINY_MOVEMENTS,
-    REV_COUNTER_PROGRESS_INTERVAL,
+    REV_COUNTER_READ_INTERVAL,
     REV_COUNTER_SETTLE_TIME,
     STEPS_PER_REV,
     TINY_MOVE_STEPS,
@@ -58,7 +58,7 @@ def run_revolution_counter():
     live_print(f"Steps per commanded 360 deg revolution: {STEPS_PER_REV}")
     live_print(f"Steps per tiny movement: {TINY_MOVE_STEPS}")
     live_print(f"Tolerance: +/-{EQUAL_ANGLE_TOLERANCE_DEG} deg")
-    live_print(f"Progress output interval: every {REV_COUNTER_PROGRESS_INTERVAL} movement(s)")
+    live_print(f"Encoder read/display interval: every {REV_COUNTER_READ_INTERVAL} movement(s)")
     live_print(f"Max tiny movements: {MAX_TINY_MOVEMENTS}\n")
 
     dpe = None
@@ -84,6 +84,9 @@ def run_revolution_counter():
             move_dpe(dpe, TINY_MOVE_STEPS)
             time.sleep(REV_COUNTER_SETTLE_TIME)
 
+            if movement_count != 1 and movement_count % REV_COUNTER_READ_INTERVAL != 0:
+                continue
+
             angle1 = read_nd287_angle(nd1)
             angle2 = read_nd287_angle(nd2)
 
@@ -106,18 +109,12 @@ def run_revolution_counter():
             if returned2 and count_to_equal2 is None:
                 count_to_equal2 = movement_count
 
-            if (
-                movement_count == 1
-                or movement_count % REV_COUNTER_PROGRESS_INTERVAL == 0
-                or returned1
-                or returned2
-            ):
-                equivalent_revs = tiny_movements_to_revolutions(movement_count)
-                live_print(
-                    f"Move {movement_count} ({equivalent_revs:.6f} rev): "
-                    f"ND1={angle1} deg diff={diff1} left_start={left_start1} returned={returned1}   "
-                    f"ND2={angle2} deg diff={diff2} left_start={left_start2} returned={returned2}"
-                )
+            equivalent_revs = tiny_movements_to_revolutions(movement_count)
+            live_print(
+                f"Move {movement_count} ({equivalent_revs:.6f} rev): "
+                f"ND1={angle1} deg diff={diff1} left_start={left_start1} returned={returned1}   "
+                f"ND2={angle2} deg diff={diff2} left_start={left_start2} returned={returned2}"
+            )
 
             if count_to_equal1 is not None and count_to_equal2 is not None:
                 break
