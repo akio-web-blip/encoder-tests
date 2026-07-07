@@ -61,6 +61,8 @@ def run_revolution_counter():
     nd2 = None
     count_to_equal1 = None
     count_to_equal2 = None
+    left_start1 = False
+    left_start2 = False
     movement_count = 0
     interrupted = False
 
@@ -86,22 +88,30 @@ def run_revolution_counter():
             equal1 = angles_are_equal(angle1, start1, EQUAL_ANGLE_TOLERANCE_DEG)
             equal2 = angles_are_equal(angle2, start2, EQUAL_ANGLE_TOLERANCE_DEG)
 
-            if equal1 and count_to_equal1 is None:
+            if not equal1:
+                left_start1 = True
+            if not equal2:
+                left_start2 = True
+
+            returned1 = left_start1 and equal1
+            returned2 = left_start2 and equal2
+
+            if returned1 and count_to_equal1 is None:
                 count_to_equal1 = movement_count
-            if equal2 and count_to_equal2 is None:
+            if returned2 and count_to_equal2 is None:
                 count_to_equal2 = movement_count
 
             if (
                 movement_count == 1
                 or movement_count % REV_COUNTER_PROGRESS_INTERVAL == 0
-                or equal1
-                or equal2
+                or returned1
+                or returned2
             ):
                 equivalent_revs = tiny_movements_to_revolutions(movement_count)
                 print(
                     f"Move {movement_count} ({equivalent_revs:.6f} rev): "
-                    f"ND1={angle1} deg diff={diff1} equal={equal1}   "
-                    f"ND2={angle2} deg diff={diff2} equal={equal2}"
+                    f"ND1={angle1} deg diff={diff1} left_start={left_start1} returned={returned1}   "
+                    f"ND2={angle2} deg diff={diff2} left_start={left_start2} returned={returned2}"
                 )
 
             if count_to_equal1 is not None and count_to_equal2 is not None:
